@@ -24,6 +24,59 @@
       --border: #1e1e1e;
     }
 
+    body.light {
+      --bg: #dcdcdc;
+      --surface: #e8e8e8;
+      --surface2: #d0d0d0;
+      --accent: #5A8F00;
+      --accent-dim: rgba(90, 143, 0, 0.1);
+      --recovery: #0077BB;
+      --recovery-dim: rgba(0, 119, 187, 0.1);
+      --text: #0a0a0a;
+      --text-dim: #444444;
+      --border: #c0c0c0;
+    }
+
+    body.light { font-weight: 700; }
+    body.light .field label,
+    body.light .section-label,
+    body.light .unit-hint,
+    body.light .app-tagline,
+    body.light .round-display,
+    body.light .stop-btn,
+    body.light .skip-btn,
+    body.light .next-tag,
+    body.light .gr-hint,
+    body.light .gr-warmup-label,
+    body.light .secs-label,
+    body.light .set-label,
+    body.light .speed-unit-display { font-weight: 700; }
+      background-image:
+        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .theme-toggle:active { border-color: var(--accent); }
+    .setup-header { position: relative; }
+
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body {
@@ -186,7 +239,8 @@
       transition: background 0.15s;
       user-select: none;
     }
-    .stepper-btn:active { background: var(--accent-dim); }
+    .field .stepper-value { font-size: 22px; }
+    .field .stepper-btn { width: 44px; height: 46px; font-size: 22px; }
     .stepper-value {
       flex: 1;
       font-family: 'Share Tech Mono', monospace;
@@ -505,6 +559,42 @@
       transition: border-color 0.2s, color 0.2s;
     }
     .skip-btn:active { border-color: var(--accent); color: var(--accent); }
+
+    .more-round-bar {
+      margin: 0 20px 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .more-round-bar.hidden { display: none; }
+    .more-round-btn {
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      color: var(--accent);
+      font-family: 'Bebas Neue', cursive;
+      font-size: 24px;
+      letter-spacing: 4px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .more-round-btn:active { background: var(--accent); color: #000; }
+
+    .take-it-easy-btn {
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      border: 2px solid var(--recovery);
+      border-radius: 12px;
+      color: var(--recovery);
+      font-family: 'Bebas Neue', cursive;
+      font-size: 24px;
+      letter-spacing: 4px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .take-it-easy-btn:active { background: var(--recovery); color: #fff; }
     @keyframes flashIn {
       0% { opacity: 0; transform: scale(0.92); }
       100% { opacity: 1; transform: scale(1); }
@@ -517,6 +607,7 @@
 <!-- ══════ SETUP SCREEN ══════ -->
 <div id="setup-screen" class="screen">
   <div class="setup-header">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     <div class="app-name">TREAD//RANDOM</div>
     <div class="app-tagline">Treadmill Interval Generator</div>
   </div>
@@ -534,12 +625,22 @@
         <div class="field-row">
           <div class="field">
             <label>Minimum Speed</label>
-            <input type="number" id="sMinSpd" value="5.0" step="0.5" min="0.5">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="adjMinSpd(-0.1)">−</button>
+              <div class="stepper-value" id="sMinSpd-display">5.0</div>
+              <button class="stepper-btn" onclick="adjMinSpd(0.1)">+</button>
+            </div>
+            <input type="hidden" id="sMinSpd" value="5.0">
             <div class="unit-hint" id="uh1">mph</div>
           </div>
           <div class="field">
             <label>Maximum Speed</label>
-            <input type="number" id="sMaxSpd" value="9.0" step="0.5" min="0.5">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="adjMaxSpd(-0.1)">−</button>
+              <div class="stepper-value" id="sMaxSpd-display">9.0</div>
+              <button class="stepper-btn" onclick="adjMaxSpd(0.1)">+</button>
+            </div>
+            <input type="hidden" id="sMaxSpd" value="9.0">
             <div class="unit-hint" id="uh2">mph</div>
           </div>
         </div>
@@ -552,11 +653,21 @@
         <div class="field-row">
           <div class="field">
             <label>Minimum (secs)</label>
-            <input type="number" id="sMinTime" value="20" step="5" min="5">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="adjMinTime(-5)">−</button>
+              <div class="stepper-value" id="sMinTime-display">20</div>
+              <button class="stepper-btn" onclick="adjMinTime(5)">+</button>
+            </div>
+            <input type="hidden" id="sMinTime" value="20">
           </div>
           <div class="field">
             <label>Maximum (secs)</label>
-            <input type="number" id="sMaxTime" value="60" step="5" min="5">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="adjMaxTime(-5)">−</button>
+              <div class="stepper-value" id="sMaxTime-display">60</div>
+              <button class="stepper-btn" onclick="adjMaxTime(5)">+</button>
+            </div>
+            <input type="hidden" id="sMaxTime" value="60">
           </div>
         </div>
       </div>
@@ -578,7 +689,12 @@
       <div class="section-body">
         <div class="field">
           <label>Duration (secs)</label>
-          <input type="number" id="rampTime" value="10" step="5" min="5">
+          <div class="stepper">
+            <button class="stepper-btn" onclick="adjRampTime(-5)">−</button>
+            <div class="stepper-value" id="rampTime-display">10</div>
+            <button class="stepper-btn" onclick="adjRampTime(5)">+</button>
+          </div>
+          <input type="hidden" id="rampTime" value="10">
           <div class="unit-hint">Applied before &amp; after each sprint</div>
         </div>
       </div>
@@ -590,12 +706,22 @@
         <div class="field-row">
           <div class="field">
             <label>Speed</label>
-            <input type="number" id="rSpd" value="3.5" step="0.5" min="0.5">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="adjRecSpd(-0.1)">−</button>
+              <div class="stepper-value" id="rSpd-display">3.5</div>
+              <button class="stepper-btn" onclick="adjRecSpd(0.1)">+</button>
+            </div>
+            <input type="hidden" id="rSpd" value="3.5">
             <div class="unit-hint" id="uh3">mph</div>
           </div>
           <div class="field">
             <label>Duration (secs)</label>
-            <input type="number" id="rTime" value="60" step="5" min="10">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="adjRecTime(-5)">−</button>
+              <div class="stepper-value" id="rTime-display">60</div>
+              <button class="stepper-btn" onclick="adjRecTime(5)">+</button>
+            </div>
+            <input type="hidden" id="rTime" value="60">
           </div>
         </div>
       </div>
@@ -653,6 +779,14 @@
   <div class="next-bar">
     <button class="skip-btn" onclick="skipPhase()">SKIP →</button>
   </div>
+
+  <div id="more-round-bar" class="more-round-bar hidden">
+    <button class="more-round-btn" onclick="addRound()">+ One More Round?</button>
+  </div>
+
+  <div id="take-it-easy-bar" class="more-round-bar hidden">
+    <button class="take-it-easy-btn" onclick="activateTakeItEasy()">Take it easy</button>
+  </div>
 </div>
 <div id="complete-screen" class="screen hidden complete-screen">
   <div class="finish-icon">🏁</div>
@@ -690,8 +824,68 @@
   let ticker = null;
   const CIRC = 2 * Math.PI * 108; // 678.58
 
+  // ── Sprint duration steppers ──
+  function adjMinTime(delta) {
+    let val = parseInt(document.getElementById('sMinTime').value);
+    val = Math.max(5, val + delta);
+    document.getElementById('sMinTime').value = val;
+    document.getElementById('sMinTime-display').textContent = val;
+  }
+  function adjMaxTime(delta) {
+    let val = parseInt(document.getElementById('sMaxTime').value);
+    val = Math.max(5, val + delta);
+    document.getElementById('sMaxTime').value = val;
+    document.getElementById('sMaxTime-display').textContent = val;
+  }
+
+  // ── Recovery speed stepper ──
+  function adjRecSpd(delta) {
+    let val = parseFloat(document.getElementById('rSpd').value);
+    val = Math.max(0.1, +(val + delta).toFixed(1));
+    document.getElementById('rSpd').value = val;
+    document.getElementById('rSpd-display').textContent = val.toFixed(1);
+  }
+
+  // ── Recovery duration stepper ──
+  function adjRecTime(delta) {
+    let val = parseInt(document.getElementById('rTime').value);
+    val = Math.max(5, val + delta);
+    document.getElementById('rTime').value = val;
+    document.getElementById('rTime-display').textContent = val;
+  }
+
+  // ── Ramp time stepper ──
+  function adjRampTime(delta) {
+    let val = parseFloat(document.getElementById('rampTime').value);
+    val = Math.max(5, val + delta);
+    document.getElementById('rampTime').value = val;
+    document.getElementById('rampTime-display').textContent = val;
+  }
+
+  // ── Min speed stepper ──
+  function adjMinSpd(delta) {
+    let val = parseFloat(document.getElementById('sMinSpd').value);
+    val = Math.max(0.1, +(val + delta).toFixed(1));
+    document.getElementById('sMinSpd').value = val;
+    document.getElementById('sMinSpd-display').textContent = val.toFixed(1);
+  }
+
+  // ── Max speed stepper ──
+  function adjMaxSpd(delta) {
+    let val = parseFloat(document.getElementById('sMaxSpd').value);
+    val = Math.max(0.1, +(val + delta).toFixed(1));
+    document.getElementById('sMaxSpd').value = val;
+    document.getElementById('sMaxSpd-display').textContent = val.toFixed(1);
+  }
+
+  // ── Theme toggle ──
+  function toggleTheme() {
+    const isLight = document.body.classList.toggle('light');
+    document.getElementById('theme-toggle').textContent = isLight ? '🌑' : '🌙';
+  }
+
   // ── Format speed fields to 1 decimal place on blur ──
-  ['sMinSpd', 'sMaxSpd', 'rSpd'].forEach(id => {
+  [].forEach(id => {
     document.getElementById(id).addEventListener('blur', function() {
       if (this.value !== '') this.value = parseFloat(this.value).toFixed(1);
     });
@@ -714,12 +908,10 @@
 
   // ── Random helpers ──
   function randSpeed(min, max) {
-    const steps = Math.round((max - min) / 0.5);
-    return +(min + Math.round(Math.random() * steps) * 0.5).toFixed(1);
+    return +(Math.random() * (max - min) + min).toFixed(1);
   }
   function randTime(min, max) {
-    const steps = Math.floor((max - min) / 5);
-    return min + Math.round(Math.random() * steps) * 5;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   // ── Start workout ──
@@ -741,6 +933,8 @@
       curRound: 1,
       phase: 'setspeed',
       nextSpd: null,
+      takeItEasy: false,
+      takeItEasyUsed: false,
       timeLeft: 0,
       phaseDur: 0,
       curSpd: 0,
@@ -783,13 +977,14 @@
     clearInterval(ticker);
 
     if (ws.phase === 'setspeed') {
-      ws.nextSpd = randSpeed(ws.sMinSpd, ws.sMaxSpd);
+      ws.nextSpd = ws.takeItEasy ? ws.sMinSpd : randSpeed(ws.sMinSpd, ws.sMaxSpd);
       ws.curSpd = ws.nextSpd;
       ws.timeLeft = ws.rampTime;
     } else if (ws.phase === 'sprint') {
       ws.curSpd = ws.nextSpd;
-      ws.timeLeft = randTime(ws.sMinTime, ws.sMaxTime);
+      ws.timeLeft = ws.takeItEasy ? ws.sMaxTime : randTime(ws.sMinTime, ws.sMaxTime);
       ws.sprintSpeeds.push(ws.curSpd);
+      ws.takeItEasy = false;
       ws.nextSpd = null;
     } else if (ws.phase === 'cooldown') {
       ws.curSpd = ws.rSpd;
@@ -857,15 +1052,35 @@
     document.getElementById('big-time').className = 'big-time ' + cls;
     document.getElementById('ring-fg').className = 'ring-fg ' + cls;
 
+    // One more round button — show only on last round
+    document.getElementById('more-round-bar').classList.toggle('hidden', ws.curRound < ws.rounds);
+
+    // Take it easy — only during recovery, unused, and at least 2 rounds remaining
+    const showTakeItEasy = ws.phase === 'recovery' && !ws.takeItEasyUsed && ws.curRound < ws.rounds - 1;
+    document.getElementById('take-it-easy-bar').classList.toggle('hidden', !showTakeItEasy);
+
     updateRing();
   }
-
-  // ── Update just the ring + timer ──
   function updateRing() {
     const t = ws.timeLeft;
     document.getElementById('big-time').textContent = t < 10 ? '0' + t : '' + t;
     const offset = CIRC * (1 - (t / ws.phaseDur));
     document.getElementById('ring-fg').style.strokeDashoffset = offset;
+  }
+
+  // ── Take It Easy ──
+  function activateTakeItEasy() {
+    ws.takeItEasy = true;
+    ws.takeItEasyUsed = true;
+    document.getElementById('take-it-easy-bar').classList.add('hidden');
+  }
+
+  // ── Add one more round ──
+  function addRound() {
+    ws.rounds++;
+    document.getElementById('tot-rounds').textContent = ws.rounds;
+    // hide the button immediately after tapping — it'll reappear next time we're on the last round
+    document.getElementById('more-round-bar').classList.add('hidden');
   }
 
   // ── Skip current phase ──
