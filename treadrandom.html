@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#080808">
+  <title>TreadRandom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --accent: #C6FF00;
+      --accent-dim: rgba(198, 255, 0, 0.12);
+      --recovery: #00BFFF;
+      --recovery-dim: rgba(0, 191, 255, 0.12);
+      --text: #ffffff;
+      --text-dim: #555555;
+      --border: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(198,255,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(198,255,0,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+    .screen.hidden { display: none; }
+
+    /* ── SETUP ── */
+    .setup-header {
+      padding: 52px 24px 20px;
+      text-align: center;
+    }
+    .app-name {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 52px;
+      letter-spacing: 5px;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .app-tagline {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .setup-body {
+      flex: 1;
+      padding: 12px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .unit-toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .unit-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .unit-btn.active { background: var(--accent); color: #000; }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .section-label {
+      padding: 9px 16px;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+    }
+    .section-label .accent { color: var(--accent); }
+    .section-label .recovery-color { color: var(--recovery); }
+
+    .section-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field-row { display: flex; gap: 10px; }
+    .field { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+    .field label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .field input[type="number"] {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 22px;
+      padding: 10px 12px;
+      width: 100%;
+      text-align: center;
+      transition: border-color 0.2s;
+      -moz-appearance: textfield;
+    }
+    .field input[type="number"]::-webkit-inner-spin-button,
+    .field input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .field input[type="number"]:focus { outline: none; border-color: var(--accent); }
+    .unit-hint {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stepper-btn {
+      width: 56px;
+      height: 52px;
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-size: 26px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .stepper-btn:active { background: var(--accent-dim); }
+    .stepper-value {
+      flex: 1;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 30px;
+      text-align: center;
+    }
+
+    .start-btn {
+      margin: 8px 20px 36px;
+      padding: 20px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Bebas Neue', cursive;
+      font-size: 30px;
+      letter-spacing: 5px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ── WORKOUT ── */
+    .workout-header {
+      padding: 20px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .round-display {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+    }
+    .round-display strong { color: var(--text); }
+
+    .stop-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      padding: 8px 14px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .phase-banner {
+      text-align: center;
+      margin-top: 20px;
+      font-family: 'Bebas Neue', cursive;
+      font-size: 56px;
+      letter-spacing: 10px;
+      transition: color 0.4s;
+    }
+    .phase-banner.sprint { color: var(--accent); }
+    .phase-banner.recovery { color: var(--recovery); }
+
+    .countdown-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 24px;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+    }
+    .ring-container svg { transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 14; }
+    .ring-fg {
+      fill: none;
+      stroke-width: 14;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.9s linear, stroke 0.4s;
+    }
+    .ring-fg.sprint { stroke: var(--accent); }
+    .ring-fg.recovery { stroke: var(--recovery); }
+    .ring-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .big-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 76px;
+      line-height: 1;
+      transition: color 0.4s;
+    }
+    .big-time.sprint { color: var(--accent); }
+    .big-time.recovery { color: var(--recovery); }
+    .secs-label {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .speed-card {
+      margin: 0 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+    .set-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .big-speed {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 68px;
+      line-height: 1;
+      transition: color 0.4s;
+    }
+    .big-speed.sprint { color: var(--accent); }
+    .big-speed.recovery { color: var(--recovery); }
+    .speed-unit-display {
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .next-bar {
+      margin: 14px 20px 28px;
+      padding: 13px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .next-tag {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .next-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* ── COMPLETE ── */
+    .complete-screen {
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .finish-icon { font-size: 72px; }
+    .finish-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 54px;
+      letter-spacing: 6px;
+      color: var(--accent);
+    }
+    .finish-sub {
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      max-width: 340px;
+    }
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
+    }
+    .stat-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 30px;
+      color: var(--accent);
+    }
+    .stat-lbl {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .go-again-btn {
+      width: 100%;
+      max-width: 340px;
+      padding: 20px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Bebas Neue', cursive;
+      font-size: 30px;
+      letter-spacing: 5px;
+      cursor: pointer;
+    }
+    .settings-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-dim);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      padding: 14px 24px;
+      cursor: pointer;
+      text-transform: uppercase;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    /* ── GET READY ── */
+    .getready-screen {
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      text-align: center;
+      padding: 40px 24px;
+    }
+    .gr-label {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 28px;
+      letter-spacing: 8px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .gr-number {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 160px;
+      line-height: 1;
+      color: var(--accent);
+      transition: transform 0.15s;
+    }
+    .gr-number.pulse { transform: scale(1.08); }
+    .gr-warmup-label {
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 32px;
+      margin-bottom: 10px;
+    }
+    .gr-speed-pill {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 36px;
+    }
+    .gr-speed-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 52px;
+      color: var(--recovery);
+      line-height: 1;
+    }
+    .gr-speed-unit {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .gr-hint {
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 28px;
+    }
+
+    .next-bar {
+      margin: 14px 20px 28px;
+      display: flex;
+      justify-content: center;
+    }
+    .skip-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-dim);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 14px 40px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .skip-btn:active { border-color: var(--accent); color: var(--accent); }
+    @keyframes flashIn {
+      0% { opacity: 0; transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .flash { animation: flashIn 0.35s ease-out; }
+  </style>
+</head>
+<body>
+
+<!-- ══════ SETUP SCREEN ══════ -->
+<div id="setup-screen" class="screen">
+  <div class="setup-header">
+    <div class="app-name">TREAD//RANDOM</div>
+    <div class="app-tagline">Treadmill Interval Generator</div>
+  </div>
+
+  <div class="setup-body">
+
+    <div class="unit-toggle">
+      <button class="unit-btn active" id="mph-btn" onclick="setUnit('mph')">MPH</button>
+      <button class="unit-btn" id="kmh-btn" onclick="setUnit('kmh')">KM/H</button>
+    </div>
+
+    <div class="section">
+      <div class="section-label">⚡ <span class="accent">Sprint</span> — Speed Range</div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Minimum Speed</label>
+            <input type="number" id="sMinSpd" value="5.0" step="0.5" min="0.5">
+            <div class="unit-hint" id="uh1">mph</div>
+          </div>
+          <div class="field">
+            <label>Maximum Speed</label>
+            <input type="number" id="sMaxSpd" value="9.0" step="0.5" min="0.5">
+            <div class="unit-hint" id="uh2">mph</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">⚡ <span class="accent">Sprint</span> — Duration Range</div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Minimum (secs)</label>
+            <input type="number" id="sMinTime" value="20" step="5" min="5">
+          </div>
+          <div class="field">
+            <label>Maximum (secs)</label>
+            <input type="number" id="sMaxTime" value="60" step="5" min="5">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">🔁 Number of Rounds</div>
+      <div class="section-body">
+        <div class="stepper">
+          <button class="stepper-btn" onclick="adjRounds(-1)">−</button>
+          <div class="stepper-value" id="rounds-val">5</div>
+          <button class="stepper-btn" onclick="adjRounds(1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">⏱ Ramp Up &amp; Cool Down Duration</div>
+      <div class="section-body">
+        <div class="field">
+          <label>Duration (secs)</label>
+          <input type="number" id="rampTime" value="10" step="5" min="5">
+          <div class="unit-hint">Applied before &amp; after each sprint</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">💙 <span class="recovery-color">Recovery</span> — Fixed Settings</div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Speed</label>
+            <input type="number" id="rSpd" value="3.5" step="0.5" min="0.5">
+            <div class="unit-hint" id="uh3">mph</div>
+          </div>
+          <div class="field">
+            <label>Duration (secs)</label>
+            <input type="number" id="rTime" value="60" step="5" min="10">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="start-btn" onclick="startWorkout()">START WORKOUT</button>
+</div>
+
+<!-- ══════ GET READY SCREEN ══════ -->
+<div id="getready-screen" class="screen hidden getready-screen">
+  <div class="gr-label">Get Ready</div>
+  <div class="gr-number" id="gr-number">10</div>
+  <div class="gr-warmup-label">Set treadmill to warmup speed</div>
+  <div class="gr-speed-pill">
+    <div class="gr-speed-num" id="gr-speed">3.5</div>
+    <div class="gr-speed-unit" id="gr-unit">mph</div>
+  </div>
+  <div class="gr-hint">First sprint begins automatically</div>
+</div>
+
+<!-- ══════ WORKOUT SCREEN ══════ -->
+<div id="workout-screen" class="screen hidden">
+  <div class="workout-header">
+    <div class="round-display">ROUND <strong id="cur-round">1</strong> / <span id="tot-rounds">5</span></div>
+    <button class="stop-btn" onclick="endWorkout()">END</button>
+  </div>
+
+  <div class="phase-banner sprint" id="phase-banner">SPRINT</div>
+
+  <div class="countdown-wrap">
+    <div class="ring-container">
+      <svg width="250" height="250" viewBox="0 0 250 250">
+        <circle class="ring-bg" cx="125" cy="125" r="108"/>
+        <circle class="ring-fg sprint" id="ring-fg"
+          cx="125" cy="125" r="108"
+          stroke-dasharray="678.58"
+          stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-inner">
+        <div class="big-time sprint" id="big-time">00</div>
+        <div class="secs-label">seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="speed-card">
+    <div class="set-label" id="set-label">Set treadmill to</div>
+    <div class="big-speed sprint" id="big-speed">7.5</div>
+    <div class="speed-unit-display" id="w-unit">mph</div>
+  </div>
+
+
+  <div class="next-bar">
+    <button class="skip-btn" onclick="skipPhase()">SKIP →</button>
+  </div>
+</div>
+<div id="complete-screen" class="screen hidden complete-screen">
+  <div class="finish-icon">🏁</div>
+  <div class="finish-title">DONE!</div>
+  <div class="finish-sub" id="finish-sub">Workout complete</div>
+
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-num" id="st-rounds">5</div>
+      <div class="stat-lbl">Rounds</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="st-time">—</div>
+      <div class="stat-lbl">Total Time</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="st-max">—</div>
+      <div class="stat-lbl">Max Speed</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="st-avg">—</div>
+      <div class="stat-lbl">Avg Sprint</div>
+    </div>
+  </div>
+
+  <button class="go-again-btn" onclick="goAgain()">GO AGAIN</button>
+  <button class="settings-btn" onclick="goSetup()">Change Settings</button>
+</div>
+
+<script>
+  // ── State ──
+  let unit = 'mph';
+  let rounds = 5;
+  let ws = {}; // workout state
+  let ticker = null;
+  const CIRC = 2 * Math.PI * 108; // 678.58
+
+  // ── Format speed fields to 1 decimal place on blur ──
+  ['sMinSpd', 'sMaxSpd', 'rSpd'].forEach(id => {
+    document.getElementById(id).addEventListener('blur', function() {
+      if (this.value !== '') this.value = parseFloat(this.value).toFixed(1);
+    });
+  });
+
+  // ── Unit toggle ──
+  function setUnit(u) {
+    unit = u;
+    document.getElementById('mph-btn').classList.toggle('active', u === 'mph');
+    document.getElementById('kmh-btn').classList.toggle('active', u === 'kmh');
+    const label = u === 'mph' ? 'mph' : 'km/h';
+    ['uh1','uh2','uh3'].forEach(id => document.getElementById(id).textContent = label);
+  }
+
+  // ── Rounds stepper ──
+  function adjRounds(d) {
+    rounds = Math.max(1, Math.min(30, rounds + d));
+    document.getElementById('rounds-val').textContent = rounds;
+  }
+
+  // ── Random helpers ──
+  function randSpeed(min, max) {
+    const steps = Math.round((max - min) / 0.5);
+    return +(min + Math.round(Math.random() * steps) * 0.5).toFixed(1);
+  }
+  function randTime(min, max) {
+    const steps = Math.floor((max - min) / 5);
+    return min + Math.round(Math.random() * steps) * 5;
+  }
+
+  // ── Start workout ──
+  function startWorkout() {
+    const sMinSpd  = parseFloat(document.getElementById('sMinSpd').value);
+    const sMaxSpd  = parseFloat(document.getElementById('sMaxSpd').value);
+    const sMinTime = parseInt(document.getElementById('sMinTime').value);
+    const sMaxTime = parseInt(document.getElementById('sMaxTime').value);
+    const rSpd     = parseFloat(document.getElementById('rSpd').value);
+    const rTime    = parseInt(document.getElementById('rTime').value);
+    const rampTime = parseInt(document.getElementById('rampTime').value);
+
+    if (sMinSpd >= sMaxSpd) { alert('Sprint min speed must be less than max speed.'); return; }
+    if (sMinTime >= sMaxTime) { alert('Sprint min time must be less than max time.'); return; }
+
+    ws = {
+      sMinSpd, sMaxSpd, sMinTime, sMaxTime,
+      rSpd, rTime, rampTime, rounds,
+      curRound: 1,
+      phase: 'setspeed',
+      nextSpd: null,
+      timeLeft: 0,
+      phaseDur: 0,
+      curSpd: 0,
+      sprintSpeeds: [],
+      startedAt: Date.now()
+    };
+
+    document.getElementById('tot-rounds').textContent = rounds;
+    document.getElementById('w-unit').textContent = unit === 'mph' ? 'mph' : 'km/h';
+    showScreen('getready-screen');
+    runGetReady();
+  }
+
+  // ── 10-second GET READY countdown ──
+  function runGetReady() {
+    const u = unit === 'mph' ? 'mph' : 'km/h';
+    document.getElementById('gr-speed').textContent = ws.rSpd.toFixed(1);
+    document.getElementById('gr-unit').textContent = u;
+
+    let count = ws.rampTime;
+    const numEl = document.getElementById('gr-number');
+    numEl.textContent = count;
+
+    const grTicker = setInterval(() => {
+      count--;
+      numEl.textContent = count;
+      numEl.classList.add('pulse');
+      setTimeout(() => numEl.classList.remove('pulse'), 150);
+
+      if (count <= 0) {
+        clearInterval(grTicker);
+        showScreen('workout-screen');
+        beginPhase();
+      }
+    }, 1000);
+  }
+
+  // ── Begin a phase ──
+  function beginPhase() {
+    clearInterval(ticker);
+
+    if (ws.phase === 'setspeed') {
+      ws.nextSpd = randSpeed(ws.sMinSpd, ws.sMaxSpd);
+      ws.curSpd = ws.nextSpd;
+      ws.timeLeft = ws.rampTime;
+    } else if (ws.phase === 'sprint') {
+      ws.curSpd = ws.nextSpd;
+      ws.timeLeft = randTime(ws.sMinTime, ws.sMaxTime);
+      ws.sprintSpeeds.push(ws.curSpd);
+      ws.nextSpd = null;
+    } else if (ws.phase === 'cooldown') {
+      ws.curSpd = ws.rSpd;
+      ws.timeLeft = ws.rampTime;
+    } else {
+      ws.curSpd = ws.rSpd;
+      ws.timeLeft = ws.rTime;
+    }
+    ws.phaseDur = ws.timeLeft;
+
+    refreshUI();
+    ticker = setInterval(() => {
+      ws.timeLeft--;
+      updateRing();
+      if (ws.timeLeft <= 0) {
+        clearInterval(ticker);
+        nextPhase();
+      }
+    }, 1000);
+  }
+
+  // ── Advance phase ──
+  function nextPhase() {
+    if (ws.phase === 'setspeed') {
+      ws.phase = 'sprint';
+    } else if (ws.phase === 'sprint') {
+      ws.phase = 'cooldown';
+    } else if (ws.phase === 'cooldown') {
+      ws.phase = 'recovery';
+    } else {
+      // recovery done
+      if (ws.curRound >= ws.rounds) { completeWorkout(); return; }
+      ws.curRound++;
+      ws.phase = 'setspeed';
+    }
+    beginPhase();
+  }
+
+  // ── Refresh entire workout UI ──
+  function refreshUI() {
+    const isSprint   = ws.phase === 'sprint';
+    const isSetSpeed = ws.phase === 'setspeed';
+    const isCooldown = ws.phase === 'cooldown';
+    const cls = (isSprint || isSetSpeed) ? 'sprint' : 'recovery';
+
+    // Phase banner
+    const banner = document.getElementById('phase-banner');
+    banner.textContent = isSprint ? 'SPRINT' : isSetSpeed ? 'SET SPEED' : isCooldown ? 'COOL DOWN' : 'RECOVER';
+    banner.className = 'phase-banner ' + cls + ' flash';
+    setTimeout(() => banner.classList.remove('flash'), 400);
+
+    // Instruction label
+    document.getElementById('set-label').textContent =
+      isSetSpeed ? 'Set treadmill to' : isCooldown ? 'Slow down to' : isSprint ? 'Running at' : 'Recover at';
+
+    // Round counter
+    document.getElementById('cur-round').textContent = ws.curRound;
+
+    // Speed
+    const spEl = document.getElementById('big-speed');
+    spEl.textContent = ws.curSpd.toFixed(1);
+    spEl.className = 'big-speed ' + cls;
+
+    // Timer color
+    document.getElementById('big-time').className = 'big-time ' + cls;
+    document.getElementById('ring-fg').className = 'ring-fg ' + cls;
+
+    updateRing();
+  }
+
+  // ── Update just the ring + timer ──
+  function updateRing() {
+    const t = ws.timeLeft;
+    document.getElementById('big-time').textContent = t < 10 ? '0' + t : '' + t;
+    const offset = CIRC * (1 - (t / ws.phaseDur));
+    document.getElementById('ring-fg').style.strokeDashoffset = offset;
+  }
+
+  // ── Skip current phase ──
+  function skipPhase() { clearInterval(ticker); nextPhase(); }
+
+  // ── End workout early ──
+  function endWorkout() {
+    if (confirm('End this workout?')) { clearInterval(ticker); goSetup(); }
+  }
+
+  // ── Workout complete ──
+  function completeWorkout() {
+    clearInterval(ticker);
+    const elapsed = Math.round((Date.now() - ws.startedAt) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    const maxSpd = ws.sprintSpeeds.length ? Math.max(...ws.sprintSpeeds) : 0;
+    const avgSpd = ws.sprintSpeeds.length
+      ? (ws.sprintSpeeds.reduce((a,b)=>a+b,0) / ws.sprintSpeeds.length).toFixed(1) : '—';
+    const u = unit === 'mph' ? 'mph' : 'km/h';
+
+    document.getElementById('st-rounds').textContent = ws.rounds;
+    document.getElementById('st-time').textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+    document.getElementById('st-max').textContent = maxSpd.toFixed(1);
+    document.getElementById('st-avg').textContent = avgSpd;
+    document.getElementById('finish-sub').textContent = `${ws.rounds} rounds · ${u}`;
+
+    showScreen('complete-screen');
+  }
+
+  // ── Navigation ──
+  function goAgain() { startWorkout(); }
+  function goSetup() { clearInterval(ticker); showScreen('setup-screen'); }
+
+  function showScreen(id) {
+    ['setup-screen','getready-screen','workout-screen','complete-screen'].forEach(s =>
+      document.getElementById(s).classList.toggle('hidden', s !== id)
+    );
+  }
+
+  // Keep screen on while workout is running (where supported)
+  let wakeLock = null;
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+    }
+  }
+  document.getElementById('setup-screen').addEventListener('click', e => {
+    if (e.target.classList.contains('start-btn')) requestWakeLock();
+  });
+</script>
+</body>
+</html>
